@@ -377,7 +377,7 @@
 
 
       /* ======================================================
-         STATE
+         ORB STATE
       ====================================================== */
 
       let width;
@@ -389,57 +389,55 @@
 
       let nodes = [];
 
-   let audioLevel = 0;
+      let audioLevel = 0;
 
-let listening = false;
+      let listening = false;
 
-
-/* ======================================================
-   SMART LISTENING CONTROL
-====================================================== */
-
-/*
-  Neo will NOT begin counting silence until
-  actual speech has been detected.
-*/
-
-let speechDetected = false;
-
-let silenceStartedAt = null;
-
-let listeningStartedAt = null;
-
-
-/*
-  How long Neo waits after you stop speaking.
-*/
-
-const SILENCE_TIMEOUT = 3000;
-
-
-/*
-  Absolute failsafe so the microphone cannot
-  remain open indefinitely.
-*/
-
-const MAX_LISTENING_TIME = 30000;
-
-
-/*
-  Audio level that counts as speech.
-
-  This is deliberately a little higher than
-  the room-noise dead zone.
-*/
-
-const SPEECH_THRESHOLD = 0.09;
-
-
-const NODE_COUNT = 68;
+      const NODE_COUNT = 68;
 
 
       /* ======================================================
-         CANVAS
+         SMART LISTENING STATE
+      ====================================================== */
+
+      let speechDetected = false;
+
+      let silenceStartedAt = null;
+
+      let listeningStartedAt = null;
+
+
+      /*
+        After speech has begun, Neo stops after
+        3 continuous seconds of silence.
+      */
+
+      const SILENCE_TIMEOUT = 3000;
+
+
+      /*
+        Absolute failsafe.
+
+        If Neo never hears speech, or background
+        noise causes problems, the microphone
+        still shuts down after 30 seconds.
+      */
+
+      const MAX_LISTENING_TIME = 30000;
+
+
+      /*
+        This level counts as actual speech.
+
+        It is slightly above the room-noise
+        threshold used by the visualizer.
+      */
+
+      const SPEECH_THRESHOLD = 0.09;
+
+
+      /* ======================================================
+         CANVAS SETUP
       ====================================================== */
 
       function resize() {
@@ -486,7 +484,7 @@ const NODE_COUNT = 68;
 
 
       /* ======================================================
-         NEURAL NETWORK
+         CREATE NEURAL NETWORK
       ====================================================== */
 
       function createNodes() {
@@ -509,7 +507,9 @@ const NODE_COUNT = 68;
             2;
 
           const distance =
-            Math.sqrt(Math.random()) *
+            Math.sqrt(
+              Math.random()
+            ) *
             radius;
 
           nodes.push({
@@ -517,11 +517,6 @@ const NODE_COUNT = 68;
             angle,
 
             distance,
-
-            /*
-              V3:
-              intentionally slow.
-            */
 
             speed:
               (
@@ -562,10 +557,6 @@ const NODE_COUNT = 68;
 
       function getNodePosition(node) {
 
-        /*
-          Calm, slow breathing.
-        */
-
         const breathing =
           Math.sin(
             time * 0.00075
@@ -574,12 +565,9 @@ const NODE_COUNT = 68;
 
 
         /*
-          Voice causes only a SMALL
-          physical expansion.
-
-          Most voice feedback comes from
-          light instead.
-        */
+          Voice changes light much more than
+          physical movement.
+      */
 
         const voiceExpansion =
           audioLevel *
@@ -602,11 +590,6 @@ const NODE_COUNT = 68;
             audioLevel * 0.7
           );
 
-
-        /*
-          Listening barely increases
-          rotation speed.
-        */
 
         const speedBoost =
           listening
@@ -645,7 +628,7 @@ const NODE_COUNT = 68;
 
 
       /* ======================================================
-         LARGE AMBIENT BACKGROUND GLOW
+         AMBIENT BACKGROUND GLOW
       ====================================================== */
 
       function drawAmbientGlow() {
@@ -653,10 +636,6 @@ const NODE_COUNT = 68;
         const size =
           Math.min(width, height);
 
-
-        /*
-          Wide, soft blue atmospheric glow.
-        */
 
         const blueRadius =
           size *
@@ -690,6 +669,7 @@ const NODE_COUNT = 68;
           )`
         );
 
+
         blueGlow.addColorStop(
           0.35,
           `rgba(
@@ -700,10 +680,12 @@ const NODE_COUNT = 68;
           )`
         );
 
+
         blueGlow.addColorStop(
           0.7,
           'rgba(13,79,120,0.025)'
         );
+
 
         blueGlow.addColorStop(
           1,
@@ -714,7 +696,9 @@ const NODE_COUNT = 68;
         ctx.fillStyle =
           blueGlow;
 
+
         ctx.beginPath();
+
 
         ctx.arc(
           centerX,
@@ -724,12 +708,12 @@ const NODE_COUNT = 68;
           Math.PI * 2
         );
 
+
         ctx.fill();
 
 
         /*
-          Very restrained warm glow
-          on Neo's right side.
+          Subtle warm glow on the right.
         */
 
         const orangeGlow =
@@ -753,6 +737,7 @@ const NODE_COUNT = 68;
           )`
         );
 
+
         orangeGlow.addColorStop(
           1,
           'rgba(0,0,0,0)'
@@ -762,7 +747,9 @@ const NODE_COUNT = 68;
         ctx.fillStyle =
           orangeGlow;
 
+
         ctx.beginPath();
+
 
         ctx.arc(
           centerX + size * 0.17,
@@ -771,6 +758,7 @@ const NODE_COUNT = 68;
           0,
           Math.PI * 2
         );
+
 
         ctx.fill();
 
@@ -846,6 +834,7 @@ const NODE_COUNT = 68;
 
         ctx.beginPath();
 
+
         ctx.arc(
           centerX,
           centerY,
@@ -853,6 +842,7 @@ const NODE_COUNT = 68;
           0,
           Math.PI * 2
         );
+
 
         ctx.fill();
 
@@ -873,11 +863,6 @@ const NODE_COUNT = 68;
         const size =
           Math.min(width, height);
 
-
-        /*
-          Always visible while listening,
-          but intentionally subtle.
-        */
 
         const energy =
           Math.max(
@@ -908,10 +893,11 @@ const NODE_COUNT = 68;
 
 
         /*
-          Thin blue ring
+          Blue listening ring.
         */
 
         ctx.beginPath();
+
 
         ctx.arc(
           centerX,
@@ -949,7 +935,7 @@ const NODE_COUNT = 68;
 
 
         /*
-          Slow orange accent arc.
+          Slow orange accent.
         */
 
         const arcRotation =
@@ -957,6 +943,7 @@ const NODE_COUNT = 68;
 
 
         ctx.beginPath();
+
 
         ctx.arc(
           centerX,
@@ -1030,9 +1017,11 @@ const NODE_COUNT = 68;
               positions[i].x -
               positions[j].x;
 
+
             const dy =
               positions[i].y -
               positions[j].y;
+
 
             const distance =
               Math.sqrt(
@@ -1133,11 +1122,6 @@ const NODE_COUNT = 68;
                 : '68,204,255';
 
 
-            /*
-              Voice response happens primarily
-              through brightness.
-            */
-
             ctx.shadowBlur =
               7 +
               audioLevel *
@@ -1184,7 +1168,7 @@ const NODE_COUNT = 68;
 
 
       /* ======================================================
-         SUBTLE ORBITING PARTICLES
+         ORBITING PARTICLES
       ====================================================== */
 
       function drawParticles() {
@@ -1282,7 +1266,7 @@ const NODE_COUNT = 68;
 
 
       /* ======================================================
-         ANIMATION
+         ANIMATION LOOP
       ====================================================== */
 
       function animate(timestamp) {
@@ -1298,12 +1282,6 @@ const NODE_COUNT = 68;
           height
         );
 
-
-        /*
-          Order matters:
-          atmosphere first,
-          neural network above it.
-        */
 
         drawAmbientGlow();
 
@@ -1339,7 +1317,7 @@ const NODE_COUNT = 68;
 
 
       /* ======================================================
-         MICROPHONE
+         MICROPHONE VARIABLES
       ====================================================== */
 
       let stream = null;
@@ -1351,456 +1329,548 @@ const NODE_COUNT = 68;
       let microphone = null;
 
 
-async function startListening() {
+      /* ======================================================
+         START LISTENING
+      ====================================================== */
 
-  if (listening) {
+      async function startListening() {
 
-    stopListening(
-      'manual'
-    );
+        /*
+          Tapping while already listening
+          manually ends the session.
+        */
 
-    return;
+        if (listening) {
 
-  }
+          stopListening(
+            'manual'
+          );
 
+          return;
 
-  if (
-    !navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia
-  ) {
-
-    voiceStatus.textContent =
-      'Microphone unavailable in this browser.';
-
-    voiceStatus.className =
-      'voice-status error';
-
-    return;
-
-  }
+        }
 
 
-  try {
+        if (
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia
+        ) {
 
-    voiceStatus.textContent =
-      'Requesting microphone…';
-
-    voiceStatus.className =
-      'voice-status listening';
-
-
-    stream =
-      await navigator.mediaDevices
-        .getUserMedia({
-          audio: true,
-          video: false
-        });
+          voiceStatus.textContent =
+            'Microphone unavailable in this browser.';
 
 
-    audioContext =
-      new (
-        window.AudioContext ||
-        window.webkitAudioContext
-      )();
+          voiceStatus.className =
+            'voice-status error';
 
 
-    analyser =
-      audioContext
-        .createAnalyser();
+          return;
+
+        }
 
 
-    analyser.fftSize =
-      256;
+        try {
+
+          voiceStatus.textContent =
+            'Requesting microphone…';
 
 
-    analyser.smoothingTimeConstant =
-      0.72;
+          voiceStatus.className =
+            'voice-status listening';
 
 
-    microphone =
-      audioContext
-        .createMediaStreamSource(
-          stream
-        );
+          stream =
+            await navigator.mediaDevices
+              .getUserMedia({
+                audio: true,
+                video: false
+              });
 
 
-    microphone.connect(
-      analyser
-    );
+          audioContext =
+            new (
+              window.AudioContext ||
+              window.webkitAudioContext
+            )();
 
 
-    /*
-      Reset Neo's listening state.
-    */
-
-    speechDetected =
-      false;
-
-    silenceStartedAt =
-      null;
-
-    listeningStartedAt =
-      performance.now();
+          analyser =
+            audioContext
+              .createAnalyser();
 
 
-    listening =
-      true;
+          analyser.fftSize =
+            256;
 
 
-    voiceStatus.textContent =
-      'Listening…';
+          analyser.smoothingTimeConstant =
+            0.72;
 
 
-    voiceStatus.className =
-      'voice-status listening';
+          microphone =
+            audioContext
+              .createMediaStreamSource(
+                stream
+              );
 
 
-    monitorAudio();
-
-  }
-
-  catch (error) {
-
-    console.error(
-      error
-    );
+          microphone.connect(
+            analyser
+          );
 
 
-    voiceStatus.textContent =
-      'Microphone permission was not allowed.';
+          /*
+            Reset the smart-listening state
+            for this new conversation turn.
+          */
+
+          speechDetected =
+            false;
 
 
-    voiceStatus.className =
-      'voice-status error';
+          silenceStartedAt =
+            null;
 
-  }
 
-}
+          listeningStartedAt =
+            performance.now();
+
+
+          listening =
+            true;
+
+
+          voiceStatus.textContent =
+            'Listening…';
+
+
+          voiceStatus.className =
+            'voice-status listening';
+
+
+          monitorAudio();
+
+        }
+
+        catch (error) {
+
+          console.error(
+            error
+          );
+
+
+          voiceStatus.textContent =
+            'Microphone permission was not allowed.';
+
+
+          voiceStatus.className =
+            'voice-status error';
+
+        }
+
+      }
 
 
       /* ======================================================
-         AUDIO LEVEL
+         AUDIO + SILENCE DETECTION
       ====================================================== */
 
-function monitorAudio() {
+      function monitorAudio() {
 
-  if (
-    !listening ||
-    !analyser
-  ) {
-    return;
-  }
+        if (
+          !listening ||
+          !analyser
+        ) {
+          return;
+        }
 
 
-  const data =
-    new Uint8Array(
-      analyser.frequencyBinCount
-    );
+        const data =
+          new Uint8Array(
+            analyser.frequencyBinCount
+          );
 
 
-  analyser.getByteFrequencyData(
-    data
-  );
+        analyser.getByteFrequencyData(
+          data
+        );
 
 
-  let total = 0;
+        let total = 0;
 
 
-  for (
-    let i = 0;
-    i < data.length;
-    i++
-  ) {
+        for (
+          let i = 0;
+          i < data.length;
+          i++
+        ) {
 
-    total +=
-      data[i];
+          total +=
+            data[i];
 
-  }
+        }
 
 
-  const average =
-    total /
-    data.length;
+        const average =
+          total /
+          data.length;
 
 
-  /*
-    Convert microphone energy into
-    Neo's visual response level.
-  */
+        /*
+          Convert microphone energy into
+          Neo's visual response.
+        */
 
-  let target =
-    average / 46;
+        let target =
+          average / 46;
 
 
-  /*
-    Ignore very small room noise.
-  */
+        /*
+          Ignore tiny room noise.
+        */
 
-  if (
-    target <
-    0.055
-  ) {
+        if (
+          target <
+          0.055
+        ) {
 
-    target = 0;
+          target = 0;
 
-  }
+        }
 
 
-  target =
-    Math.min(
-      target,
-      1
-    );
+        target =
+          Math.min(
+            target,
+            1
+          );
 
 
-  /*
-    Responsive attack.
-    Gentle decay.
-  */
+        /*
+          Responsive attack.
+          Gentle decay.
+        */
 
-  if (
-    target >
-    audioLevel
-  ) {
+        if (
+          target >
+          audioLevel
+        ) {
 
-    audioLevel =
-      audioLevel *
-      0.58 +
-      target *
-      0.42;
+          audioLevel =
+            audioLevel *
+            0.58 +
+            target *
+            0.42;
 
-  }
+        }
 
-  else {
+        else {
 
-    audioLevel =
-      audioLevel *
-      0.87 +
-      target *
-      0.13;
+          audioLevel =
+            audioLevel *
+            0.87 +
+            target *
+            0.13;
 
-  }
+        }
 
 
-  /* ==================================================
-     SPEECH DETECTION
-  ================================================== */
+        const now =
+          performance.now();
 
-  const now =
-    performance.now();
 
+        /* ==================================================
+           SPEECH DETECTION
+        ================================================== */
 
-  /*
-    Once Neo hears actual speech for the first time,
-    automatic silence detection becomes active.
-  */
+        if (
+          target >=
+          SPEECH_THRESHOLD
+        ) {
 
-  if (
-    target >=
-    SPEECH_THRESHOLD
-  ) {
+          /*
+            Neo has now heard real speech.
 
-    if (!speechDetected) {
+            Only from this point forward
+            can silence automatically end
+            the listening session.
+          */
 
-      speechDetected = true;
+          if (!speechDetected) {
 
-      voiceStatus.textContent =
-        'Listening…';
+            speechDetected =
+              true;
 
-    }
 
+            voiceStatus.textContent =
+              'Listening…';
 
-    /*
-      We are currently hearing speech,
-      so any previous silence period ends.
-    */
+          }
 
-    silenceStartedAt = null;
 
-  }
+          /*
+            Speech resets the silence timer.
+          */
 
+          silenceStartedAt =
+            null;
 
-  /*
-    Speech has happened before, but Neo
-    currently hears silence.
-  */
+        }
 
-  else if (
-    speechDetected
-  ) {
 
-    if (
-      silenceStartedAt === null
-    ) {
+        else if (
+          speechDetected
+        ) {
 
-      silenceStartedAt =
-        now;
+          /*
+            Speech occurred previously,
+            and we're now quiet.
+          */
 
-    }
+          if (
+            silenceStartedAt === null
+          ) {
 
+            silenceStartedAt =
+              now;
 
-    const silenceDuration =
-      now -
-      silenceStartedAt;
+          }
 
 
-    /*
-      Three continuous seconds of silence
-      means Brock has finished speaking.
-    */
+          const silenceDuration =
+            now -
+            silenceStartedAt;
 
-    if (
-      silenceDuration >=
-      SILENCE_TIMEOUT
-    ) {
 
-      stopListening(
-        'auto'
-      );
+          /*
+            Three continuous seconds
+            without speech = finished.
+          */
 
-      return;
+          if (
+            silenceDuration >=
+            SILENCE_TIMEOUT
+          ) {
 
-    }
+            stopListening(
+              'auto'
+            );
 
-  }
 
+            return;
 
-  /* ==================================================
-     MAXIMUM LISTENING FAILSAFE
-  ================================================== */
+          }
 
-  if (
-    listeningStartedAt !== null &&
-    now -
-    listeningStartedAt >=
-    MAX_LISTENING_TIME
-  ) {
+        }
 
-    stopListening(
-      'timeout'
-    );
 
-    return;
+        /* ==================================================
+           30-SECOND FAILSAFE
+        ================================================== */
 
-  }
+        if (
+          listeningStartedAt !== null &&
+          now -
+          listeningStartedAt >=
+          MAX_LISTENING_TIME
+        ) {
 
+          stopListening(
+            'timeout'
+          );
 
-  requestAnimationFrame(
-    monitorAudio
-  );
 
-}
+          return;
+
+        }
+
+
+        requestAnimationFrame(
+          monitorAudio
+        );
+
+      }
 
 
       /* ======================================================
          STOP LISTENING
       ====================================================== */
 
-function stopListening(reason = 'manual') {
+      function stopListening(
+        reason = 'manual'
+      ) {
 
-  /*
-    Prevent multiple shutdown calls.
-  */
-
-  if (!listening) {
-    return;
-  }
+        if (!listening) {
+          return;
+        }
 
 
-  listening =
-    false;
+        listening =
+          false;
 
 
-  audioLevel =
-    0;
+        audioLevel =
+          0;
 
 
-  /*
-    Reset smart-listening state.
-  */
-
-  speechDetected =
-    false;
-
-  silenceStartedAt =
-    null;
-
-  listeningStartedAt =
-    null;
+        speechDetected =
+          false;
 
 
-  /*
-    Actually release the iPhone microphone.
-  */
-
-  if (stream) {
-
-    stream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-  }
+        silenceStartedAt =
+          null;
 
 
-  if (audioContext) {
-
-    audioContext.close();
-
-  }
+        listeningStartedAt =
+          null;
 
 
-  stream =
-    null;
+        /*
+          Stop every active microphone track.
 
-  audioContext =
-    null;
+          This is what actually releases
+          the iPhone microphone.
+        */
 
-  analyser =
-    null;
+        if (stream) {
 
-  microphone =
-    null;
+          stream
+            .getTracks()
+            .forEach(
+              track => {
+                track.stop();
+              }
+            );
 
-
-  /*
-    Temporary development feedback.
-    Eventually this is where Neo will
-    transition into THINKING.
-  */
-
-  if (
-    reason === 'auto'
-  ) {
-
-    voiceStatus.textContent =
-      'Finished listening';
-
-  }
-
-  else if (
-    reason === 'timeout'
-  ) {
-
-    voiceStatus.textContent =
-      'Listening timed out';
-
-  }
-
-  else {
-
-    voiceStatus.textContent =
-      'Finished listening';
-
-  }
+        }
 
 
-  voiceStatus.className =
-    'voice-status success';
+        /*
+          Disconnect our Web Audio node.
+        */
 
-}
+        if (microphone) {
+
+          try {
+
+            microphone.disconnect();
+
+          }
+
+          catch (error) {
+
+            console.log(
+              'Microphone already disconnected.'
+            );
+
+          }
+
+        }
+
+
+        /*
+          Close the Web Audio context.
+        */
+
+        if (audioContext) {
+
+          audioContext
+            .close()
+            .catch(() => {});
+
+        }
+
+
+        stream =
+          null;
+
+
+        audioContext =
+          null;
+
+
+        analyser =
+          null;
+
+
+        microphone =
+          null;
+
+
+        /*
+          Temporary development status.
+
+          Later:
+          AUTO STOP
+              ↓
+          THINKING
+              ↓
+          TRANSCRIPTION
+              ↓
+          NEO RESPONSE
+        */
+
+        if (
+          reason === 'timeout'
+        ) {
+
+          voiceStatus.textContent =
+            'Listening timed out';
+
+        }
+
+        else {
+
+          voiceStatus.textContent =
+            'Finished listening';
+
+        }
+
+
+        voiceStatus.className =
+          'voice-status success';
+
+      }
+
+
+      /* ======================================================
+         TAP NEO
+      ====================================================== */
+
+      canvas.addEventListener(
+        'click',
+        () => {
+
+          canvas.animate(
+            [
+              {
+                transform:
+                  'scale(1)'
+              },
+
+              {
+                transform:
+                  'scale(1.018)'
+              },
+
+              {
+                transform:
+                  'scale(1)'
+              }
+            ],
+            {
+              duration:
+                500,
+
+              easing:
+                'ease-out'
+            }
+          );
+
+
+          startListening();
+
+        }
       );
 
 
