@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <title>Neo</title>
+
+  <style>
+    :root {
+      --bg: #020812;
+      --blue: #43c8ff;
+      --orange: #ff9d35;
+      --text: #f4f7fb;
+      --muted: #8291a3;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(
+          circle at 50% 55%,
+          rgba(18, 91, 125, .15),
+          transparent 35%
+        ),
+        linear-gradient(
+          180deg,
+          #020812 0%,
+          #04101d 65%,
+          #020812 100%
+        );
+    }
+
+    .neo-app {
+      width: 100%;
+      height: 100dvh;
+      min-height: 100vh;
+
+      display: flex;
+      flex-direction: column;
+
+      padding:
+        max(28px, env(safe-area-inset-top))
+        24px
+        max(16px, env(safe-area-inset-bottom));
+    }
+
+    .neo-header {
+      text-align: center;
+      padding-top: 5px;
+    }
+
+    .neo-brand {
+      font-size: 34px;
+      font-weight: 650;
+
+      background: linear-gradient(
+        90deg,
+        #55d7ff 15%,
+        #b6eaff 48%,
+        #ffad45 78%
+      );
+
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .neo-tagline {
+      margin-top: 5px;
+      font-size: 8px;
+      letter-spacing: 2.3px;
+      color: #8193a5;
+    }
+
+    .greeting {
+      margin-top: 58px;
+    }
+
+    .greeting-main {
+      font-size: 24px;
+      font-weight: 500;
+    }
+
+    .greeting-sub {
+      margin-top: 7px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .orb-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+    }
+
+    .orb-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #neoOrb {
+      width: min(92vw, 470px);
+      height: min(92vw, 470px);
+      cursor: pointer;
+      touch-action: manipulation;
+
+      transition:
+        filter .2s ease,
+        transform .2s ease;
+    }
+
+    .voice-status {
+      margin-top: -20px;
+      min-height: 22px;
+
+      color: #71889a;
+      font-size: 12px;
+      text-align: center;
+
+      transition: color .25s ease;
+    }
+
+    .voice-status.listening {
+      color: var(--blue);
+    }
+
+    .voice-status.success {
+      color: #d6edf7;
+    }
+
+    .voice-status.error {
+      color: var(--orange);
+    }
+
+    .quote {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 22px;
+    }
+
+    .quote-line {
+      flex: 1;
+      height: 1px;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(92, 144, 174, .45)
+      );
+    }
+
+    .quote-line:last-child {
+      transform: scaleX(-1);
+    }
+
+    .quote-text {
+      color: #718294;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .bottom-nav {
+      height: 68px;
+
+      border: 1px solid rgba(80, 120, 145, .18);
+      background: rgba(4, 15, 26, .82);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border-radius: 22px;
+
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+
+      padding: 7px 4px;
+    }
+
+    .nav-item {
+      border: 0;
+      background: transparent;
+      color: #617284;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      font: inherit;
+      font-size: 9px;
+      gap: 3px;
+    }
+
+    .nav-icon {
+      font-size: 21px;
+    }
+
+    .nav-item.active {
+      color: var(--blue);
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="neo-app">
+
+    <header class="neo-header">
+
+      <div class="neo-brand">
+        Neo
+      </div>
+
+      <div class="neo-tagline">
+        LISTENS&nbsp;&nbsp; THINKS&nbsp;&nbsp; CONNECTS&nbsp;&nbsp; HELPS
+      </div>
+
+    </header>
+
+
+    <section class="greeting">
+
+      <div
+        id="greeting"
+        class="greeting-main"
+      >
+        Good morning, Brock.
+      </div>
+
+      <div class="greeting-sub">
+        How can I help?
+      </div>
+
+    </section>
+
+
+    <section class="orb-area">
+
+      <div class="orb-stack">
+
+        <canvas id="neoOrb"></canvas>
+
+        <div
+          id="voiceStatus"
+          class="voice-status"
+        >
+          Tap Neo to speak
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section class="quote">
+
+      <div class="quote-line"></div>
+
+      <div class="quote-text">
+        Progress happens when intent meets action.
+      </div>
+
+      <div class="quote-line"></div>
+
+    </section>
+
+
+    <nav class="bottom-nav">
+
+      <button class="nav-item active">
+        <span class="nav-icon">⌂</span>
+        <span>Home</span>
+      </button>
+
+      <button class="nav-item">
+        <span class="nav-icon">✦</span>
+        <span>Explore</span>
+      </button>
+
+      <button class="nav-item">
+        <span class="nav-icon">◎</span>
+        <span>Memory</span>
+      </button>
+
+      <button class="nav-item">
+        <span class="nav-icon">⚙</span>
+        <span>Settings</span>
+      </button>
+
+    </nav>
+
+  </main>
+
+
+<script>
+
+(() => {
+
+  /* ------------------------------
+     BASIC ELEMENTS
+  ------------------------------ */
+
+  const canvas =
+    document.getElementById('neoOrb');
+
+  const ctx =
+    canvas.getContext('2d');
+
+  const voiceStatus =
+    document.getElementById('voiceStatus');
+
+
+  /* ------------------------------
+     DYNAMIC GREETING
+  ------------------------------ */
+
+  const hour =
+    new Date().getHours();
+
+  let greeting =
+    'Good evening';
+
+  if (hour < 12) {
+    greeting = 'Good morning';
+  }
+  else if (hour < 17) {
+    greeting = 'Good afternoon';
+  }
+
+  document.getElementById('greeting')
+    .textContent =
+      `${greeting}, Brock.`;
+
+
+  /* ------------------------------
+     ORB
+  ------------------------------ */
+
+  let width;
+  let height;
+  let centerX;
+  let centerY;
+
+  let time = 0;
+  let nodes = [];
+
+  let audioLevel = 0;
+
+  const NODE_COUNT = 62;
+
+
+  function resize() {
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const dpr =
+      Math.min(
+        window.devicePixelRatio || 1,
+        2
+      );
+
+    canvas.width =
+      rect.width * dpr;
+
+    canvas.height =
+      rect.height * dpr;
+
+    ctx.setTransform(
+      dpr, 0, 0, dpr, 0, 0
+    );
+
+    width = rect.width;
+    height = rect.height;
+
+    centerX = width / 2;
+    centerY = height / 2;
+
+    createNodes();
+
+  }
+
+
+  function createNodes() {
+
+    nodes = [];
+
+    const radius =
+      Math.min(width, height) * .27;
+
+    for (
+      let i = 0;
+      i < NODE_COUNT;
+      i++
+    ) {
+
+      const angle =
+        Math.random() * Math.PI * 2;
+
+      const distance =
+        Math.sqrt(Math.random()) *
+        radius;
+
+      nodes.push({
+
+        angle,
+        distance,
+
+        speed:
+          (Math.random() * .0007 + .00015) *
+          (Math.random() > .5 ? 1 : -1),
+
+        wobble:
+          Math.random() *
+          Math.PI * 2,
+
+        size:
+          Math.random() * 1.7 + .8,
+
+        orange:
+          Math.random() > .82
+
+      });
+
+    }
+
+  }
+
+
+  function getNodePosition(node) {
+
+    const normalBreathing =
+      Math.sin(time * .0011) * .035;
+
+    const micBreathing =
+      audioLevel * .12;
+
+    const breathe =
+      1 +
+      normalBreathing +
+      micBreathing;
+
+    const wobble =
+      Math.sin(
+        time * .0015 +
+        node.wobble
+      ) * 5;
+
+    const angle =
+      node.angle +
+      time * node.speed;
+
+    const distance =
+      node.distance *
+      breathe +
+      wobble;
+
+    return {
+
+      x:
+        centerX +
+        Math.cos(angle) *
+        distance,
+
+      y:
+        centerY +
+        Math.sin(angle) *
+        distance
+
+    };
+
+  }
+
+
+  function drawGlow() {
+
+    const pulse =
+      1 +
+      Math.sin(time * .0012) * .06 +
+      audioLevel * .18;
+
+    const radius =
+      Math.min(width, height) *
+      .31 *
+      pulse;
+
+    const gradient =
+      ctx.createRadialGradient(
+        centerX,
+        centerY,
+        radius * .05,
+        centerX,
+        centerY,
+        radius
+      );
+
+    gradient.addColorStop(
+      0,
+      `rgba(
+        28,
+        170,
+        230,
+        ${.11 + audioLevel * .22}
+      )`
+    );
+
+    gradient.addColorStop(
+      .55,
+      'rgba(17,112,164,.07)'
+    );
+
+    gradient.addColorStop(
+      1,
+      'rgba(0,0,0,0)'
+    );
+
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      centerX,
+      centerY,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+  }
+
+
+  function drawConnections(positions) {
+
+    const maxDistance =
+      Math.min(width, height) *
+      .115;
+
+    for (
+      let i = 0;
+      i < positions.length;
+      i++
+    ) {
+
+      for (
+        let j = i + 1;
+        j < positions.length;
+        j++
+      ) {
+
+        const dx =
+          positions[i].x -
+          positions[j].x;
+
+        const dy =
+          positions[i].y -
+          positions[j].y;
+
+        const distance =
+          Math.sqrt(
+            dx * dx +
+            dy * dy
+          );
+
+        if (
+          distance <
+          maxDistance
+        ) {
+
+          const opacity =
+            (1 -
+             distance /
+             maxDistance) *
+            (.36 +
+             audioLevel * .35);
+
+          const warm =
+            nodes[i].orange ||
+            nodes[j].orange;
+
+          ctx.strokeStyle =
+            warm
+              ? `rgba(
+                  255,
+                  145,
+                  42,
+                  ${opacity}
+                )`
+              : `rgba(
+                  58,
+                  193,
+                  244,
+                  ${opacity}
+                )`;
+
+          ctx.lineWidth = .7;
+
+          ctx.beginPath();
+
+          ctx.moveTo(
+            positions[i].x,
+            positions[i].y
+          );
+
+          ctx.lineTo(
+            positions[j].x,
+            positions[j].y
+          );
+
+          ctx.stroke();
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  function drawNodes(positions) {
+
+    positions.forEach(
+      (p, index) => {
+
+        const node =
+          nodes[index];
+
+        const color =
+          node.orange
+            ? '255,157,53'
+            : '68,204,255';
+
+        ctx.shadowBlur =
+          10 +
+          audioLevel * 18;
+
+        ctx.shadowColor =
+          `rgba(${color},.9)`;
+
+        ctx.fillStyle =
+          `rgba(${color},.95)`;
+
+        ctx.beginPath();
+
+        ctx.arc(
+          p.x,
+          p.y,
+          node.size +
+          audioLevel * .8,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fill();
+
+      }
+    );
+
+    ctx.shadowBlur = 0;
+
+  }
+
+
+  function animate(timestamp) {
+
+    time = timestamp;
+
+    ctx.clearRect(
+      0,
+      0,
+      width,
+      height
+    );
+
+    drawGlow();
+
+    const positions =
+      nodes.map(
+        getNodePosition
+      );
+
+    drawConnections(positions);
+    drawNodes(positions);
+
+    requestAnimationFrame(
+      animate
+    );
+
+  }
+
+
+  /* ------------------------------
+     MICROPHONE
+  ------------------------------ */
+
+  let stream = null;
+  let audioContext = null;
+  let analyser = null;
+  let microphone = null;
+  let listening = false;
+
+
+  async function startListening() {
+
+    if (listening) {
+      stopListening();
+      return;
+    }
+
+
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
+    ) {
+
+      voiceStatus.textContent =
+        'Microphone unavailable in this browser.';
+
+      voiceStatus.className =
+        'voice-status error';
+
+      return;
+
+    }
+
+
+    try {
+
+      voiceStatus.textContent =
+        'Requesting microphone…';
+
+      voiceStatus.className =
+        'voice-status listening';
+
+
+      stream =
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio: true,
+            video: false
+          });
+
+
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+
+      analyser =
+        audioContext.createAnalyser();
+
+      analyser.fftSize = 256;
+
+
+      microphone =
+        audioContext
+          .createMediaStreamSource(
+            stream
+          );
+
+
+      microphone.connect(
+        analyser
+      );
+
+
+      listening = true;
+
+
+      voiceStatus.textContent =
+        'Listening… tap again to stop';
+
+      voiceStatus.className =
+        'voice-status success';
+
+
+      monitorAudio();
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      voiceStatus.textContent =
+        'Microphone permission was not allowed.';
+
+      voiceStatus.className =
+        'voice-status error';
+
+    }
+
+  }
+
+
+  function monitorAudio() {
+
+    if (
+      !listening ||
+      !analyser
+    ) {
+      return;
+    }
+
+
+    const data =
+      new Uint8Array(
+        analyser.frequencyBinCount
+      );
+
+
+    analyser.getByteFrequencyData(
+      data
+    );
+
+
+    let total = 0;
+
+    for (
+      let i = 0;
+      i < data.length;
+      i++
+    ) {
+      total += data[i];
+    }
+
+
+    const average =
+      total /
+      data.length;
+
+
+    const target =
+      Math.min(
+        average / 70,
+        1
+      );
+
+
+    audioLevel =
+      audioLevel * .75 +
+      target * .25;
+
+
+    requestAnimationFrame(
+      monitorAudio
+    );
+
+  }
+
+
+  function stopListening() {
+
+    listening = false;
+    audioLevel = 0;
+
+
+    if (stream) {
+
+      stream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
+
+    }
+
+
+    if (audioContext) {
+      audioContext.close();
+    }
+
+
+    stream = null;
+    audioContext = null;
+    analyser = null;
+    microphone = null;
+
+
+    voiceStatus.textContent =
+      'Microphone test successful';
+
+    voiceStatus.className =
+      'voice-status success';
+
+  }
+
+
+  canvas.addEventListener(
+    'click',
+    startListening
+  );
+
+
+  window.addEventListener(
+    'resize',
+    resize
+  );
+
+
+  resize();
+
+  requestAnimationFrame(
+    animate
+  );
+
+})();
+
+</script>
+
+</body>
+</html>
